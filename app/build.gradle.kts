@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.android_lab4"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.android_lab4"
@@ -27,6 +27,9 @@ android {
                 "proguard-rules.pro"
             )
         }
+    }
+    buildFeatures{
+        viewBinding = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -54,4 +57,6 @@ dependencies {
     kapt (libs.hilt.compiler)
     // ViewModel
     implementation (libs.androidx.lifecycle.viewmodel.ktx)
+    // Fragment
+    implementation(libs.androidx.fragment.ktx)
 }

@@ -2,21 +2,26 @@ package com.example.android_lab4
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.android_lab4.data.model.Note
+import com.example.android_lab4.data.database.NoteDao
+import com.example.android_lab4.domain.repository.NoteRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class NoteViewModel(
-    private val dao: NoteDao,
+@HiltViewModel
+class NoteViewModel @Inject constructor(
+    private val repository: NoteRepository,
 ): ViewModel() {
 
     private val _state = MutableStateFlow(NoteState())
 
-    private val _notes = dao.getAllNotes()
+    private val _notes = repository.getAllNotesRepository()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     val state = combine(_state, _notes) { state, notes ->
@@ -30,7 +35,7 @@ class NoteViewModel(
         when(event) {
             is NoteEvent.DeleteNote -> {
                 viewModelScope.launch{
-                    dao.deleteNote(event.note)
+                    repository.deleteNoteRepository(event.note)
                 }
             }
             NoteEvent.HideDialog -> {
@@ -52,7 +57,7 @@ class NoteViewModel(
                 )
 
                 viewModelScope.launch {
-                    dao.upsertNote(note)
+                    repository.upsertNoteRepository(note)
                 }
 
                 _state.update { it.copy(
