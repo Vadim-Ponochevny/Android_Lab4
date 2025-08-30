@@ -1,4 +1,4 @@
-package com.example.android_lab4
+package com.example.android_lab4.ui.note
 
 import com.example.android_lab4.data.model.Note
 

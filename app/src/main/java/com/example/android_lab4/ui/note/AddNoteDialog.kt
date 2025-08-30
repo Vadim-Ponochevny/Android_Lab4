@@ -1,4 +1,4 @@
-package com.example.android_lab4
+package com.example.android_lab4.ui.note
 
 import android.app.AlertDialog
 import android.app.Dialog

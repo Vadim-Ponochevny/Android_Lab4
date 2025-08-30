@@ -1,9 +1,8 @@
-package com.example.android_lab4
+package com.example.android_lab4.ui.note
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android_lab4.data.model.Note
-import com.example.android_lab4.data.database.NoteDao
 import com.example.android_lab4.domain.repository.NoteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -84,5 +83,4 @@ class NoteViewModel @Inject constructor(
             }
         }
     }
-
 }
