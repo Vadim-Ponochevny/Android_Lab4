@@ -10,12 +10,16 @@
         android:id="@+id/titleEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Название" />
+        android:layout_marginStart="18dp"
+        android:layout_marginEnd="18dp"
+        android:hint="Title" />
 
     <EditText
         android:id="@+id/descriptionEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Описание"
+        android:hint="Description"
+        android:layout_marginStart="18dp"
+        android:layout_marginEnd="18dp"
         android:layout_marginTop="8dp" />
 </LinearLayout>

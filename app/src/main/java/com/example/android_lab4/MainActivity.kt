@@ -1,6 +1,5 @@
 package com.example.android_lab4
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
@@ -16,7 +15,6 @@ import com.example.android_lab4.databinding.NoteScreenBinding
 import com.example.android_lab4.ui.note.AddNoteDialog
 import com.example.android_lab4.ui.note.NoteAdapter
 import com.example.android_lab4.ui.note.NoteEvent
-import com.example.android_lab4.ui.note.NoteState
 import com.example.android_lab4.ui.note.NoteViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -26,9 +24,10 @@ class MainActivity : AppCompatActivity(
 ) {
     private val viewModel: NoteViewModel by viewModels()
     private lateinit var binding: NoteScreenBinding
-    private val adapter = NoteAdapter { note ->
-        viewModel.onEvent(NoteEvent.DeleteNote(note))
-    }
+    private val adapter = NoteAdapter (
+        onDeleteClick = { note -> viewModel.onEvent(NoteEvent.DeleteNote(note))},
+        onEditNote = {note -> viewModel.onEvent(NoteEvent.EditNote(note))}
+    )
     private var addNoteDialog: AddNoteDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +39,6 @@ class MainActivity : AppCompatActivity(
         setupSystemBarsPadding(binding)
         setRView()
 
-
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
@@ -50,8 +48,11 @@ class MainActivity : AppCompatActivity(
                     Log.d("Activity_state", "Notes: ${state.notes}")
 
                     if (state.isAddingNote) {
-                        if (addNoteDialog == null) {
-                            addNoteDialog = AddNoteDialog()
+                        if (state.editingNoteId != null) {
+                            addNoteDialog = AddNoteDialog.newInstance(state.title, state.description)
+                            addNoteDialog?.show(supportFragmentManager, "AddNoteDialog")
+                        } else {
+                            addNoteDialog = AddNoteDialog.newInstance()
                             addNoteDialog?.show(supportFragmentManager, "AddNoteDialog")
                         }
                     } else {
@@ -66,8 +67,6 @@ class MainActivity : AppCompatActivity(
             viewModel.onEvent(NoteEvent.ShowDialog)
         }
     }
-
-
 
     private fun setupSystemBarsPadding(binding: NoteScreenBinding) {
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->

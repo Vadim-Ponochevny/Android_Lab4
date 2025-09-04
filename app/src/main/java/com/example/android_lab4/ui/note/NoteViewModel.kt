@@ -31,7 +31,6 @@ class NoteViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NoteState())
 
-
     fun onEvent(event: NoteEvent) {
         when(event) {
             is NoteEvent.DeleteNote -> {
@@ -41,12 +40,14 @@ class NoteViewModel @Inject constructor(
             }
             NoteEvent.HideDialog -> {
                 _state.update { it.copy(
-                    isAddingNote = false
+                    isAddingNote = false,
+                    editingNoteId = null
                 ) }
             }
             NoteEvent.SaveNote -> {
                 val title = _state.value.title
                 val description = _state.value.description
+                val id = _state.value.editingNoteId ?: 0
 
                 if (title.isBlank() || description.isBlank()) {
                     Log.d("SAVE_NOTE", "Title or description is blank")
@@ -54,6 +55,7 @@ class NoteViewModel @Inject constructor(
                 }
 
                 val note = Note(
+                    id = id,
                     title = title,
                     description = description
                 )
@@ -67,6 +69,7 @@ class NoteViewModel @Inject constructor(
                     isAddingNote = false,
                     title = "",
                     description = "",
+                    editingNoteId = null
                 ) }
 
             }
@@ -85,6 +88,14 @@ class NoteViewModel @Inject constructor(
                 _state.update { it.copy(
                     isAddingNote = true
                 ) }
+            }
+            is NoteEvent.EditNote -> {
+                _state.update { it.copy(
+                    isAddingNote = true,
+                    title = event.note.title,
+                    description = event.note.description,
+                    editingNoteId = event.note.id
+                )}
             }
         }
     }

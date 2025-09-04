@@ -7,4 +7,5 @@ data class NoteState(
     val title: String = "",
     val description: String = "",
     val isAddingNote: Boolean = false,
+    val editingNoteId: Int? = null
 )
