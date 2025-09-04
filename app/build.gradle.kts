@@ -17,6 +17,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
@@ -40,6 +41,12 @@ android {
     }
 }
 
+kapt {
+    arguments {
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -59,7 +66,4 @@ dependencies {
     implementation (libs.androidx.lifecycle.viewmodel.ktx)
     // Fragment
     implementation(libs.androidx.fragment.ktx)
-
-    implementation (libs.customfloatingactionbutton)
-
 }

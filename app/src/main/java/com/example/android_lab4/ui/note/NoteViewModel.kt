@@ -1,5 +1,6 @@
 package com.example.android_lab4.ui.note
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android_lab4.data.model.Note
@@ -24,10 +25,11 @@ class NoteViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     val state = combine(_state, _notes) { state, notes ->
+        Log.d("STATE_DEBUG", "Notes from DB: $notes")
         state.copy(
             notes = notes
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), NoteState())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NoteState())
 
 
     fun onEvent(event: NoteEvent) {
@@ -43,10 +45,11 @@ class NoteViewModel @Inject constructor(
                 ) }
             }
             NoteEvent.SaveNote -> {
-                val title = state.value.title
-                val description = state.value.description
+                val title = _state.value.title
+                val description = _state.value.description
 
                 if (title.isBlank() || description.isBlank()) {
+                    Log.d("SAVE_NOTE", "Title or description is blank")
                     return
                 }
 
@@ -57,6 +60,7 @@ class NoteViewModel @Inject constructor(
 
                 viewModelScope.launch {
                     repository.upsertNoteRepository(note)
+                    Log.d("SAVE_NOTE", "Note saved: $note")
                 }
 
                 _state.update { it.copy(
@@ -70,6 +74,7 @@ class NoteViewModel @Inject constructor(
                 _state.update { it.copy(
                     title = event.title
                 ) }
+                Log.d("TITLE_UPDATE_IN_STATE", _state.value.title)
             }
             is NoteEvent.SetDescription -> {
                 _state.update { it.copy(

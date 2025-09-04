@@ -3,5 +3,5 @@
         app:fontProviderAuthority="com.google.android.gms.fonts"
         app:fontProviderPackage="com.google.android.gms"
         app:fontProviderQuery="Nunito Sans:wght700"
-        app:fontProviderCerts="com_google_android_gms_fonts_certs">
+        app:fontProviderCerts="@array/_certs">
 </font-family>

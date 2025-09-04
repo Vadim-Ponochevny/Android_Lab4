@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
-
     @Upsert
     suspend fun upsertNoteDatabase(note: Note)
 
