@@ -29,7 +29,7 @@ class NoteViewModel @Inject constructor(
         state.copy(
             notes = notes
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NoteState())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), NoteState())
 
     fun onEvent(event: NoteEvent) {
         when(event) {

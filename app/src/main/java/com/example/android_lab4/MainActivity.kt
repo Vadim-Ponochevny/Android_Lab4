@@ -2,6 +2,8 @@ package com.example.android_lab4
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -45,18 +47,20 @@ class MainActivity : AppCompatActivity(
                     adapter.submitList(state.notes) {
                         binding.recyclerView.post { adapter.notifyDataSetChanged() }
                     }
-                    Log.d("Activity_state", "Notes: ${state.notes}")
 
                     if (state.isAddingNote) {
-                        if (state.editingNoteId != null) {
-                            addNoteDialog = AddNoteDialog.newInstance(state.title, state.description)
-                            addNoteDialog?.show(supportFragmentManager, "AddNoteDialog")
-                        } else {
-                            addNoteDialog = AddNoteDialog.newInstance()
+                        val existingDialog = supportFragmentManager.findFragmentByTag("AddNoteDialog")
+                        if (existingDialog == null) {
+                            if (state.editingNoteId != null) {
+                                addNoteDialog = AddNoteDialog.newInstance(state.title, state.description)
+                            } else {
+                                addNoteDialog = AddNoteDialog.newInstance()
+                            }
                             addNoteDialog?.show(supportFragmentManager, "AddNoteDialog")
                         }
                     } else {
-                        addNoteDialog?.dismiss()
+                        val existingDialog = supportFragmentManager.findFragmentByTag("AddNoteDialog") as? AddNoteDialog
+                        existingDialog?.dismiss()
                         addNoteDialog = null
                     }
                 }

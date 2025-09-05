@@ -66,4 +66,6 @@ dependencies {
     implementation (libs.androidx.lifecycle.viewmodel.ktx)
     // Fragment
     implementation(libs.androidx.fragment.ktx)
+
+    implementation(libs.androidx.core.splashscreen)
 }

@@ -67,11 +67,11 @@ class AddNoteDialog(val title: String? = null, val description: String? = null) 
         return dialog
     }
 
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
         viewModel.onEvent(NoteEvent.HideDialog)
-
     }
 
     companion object {
