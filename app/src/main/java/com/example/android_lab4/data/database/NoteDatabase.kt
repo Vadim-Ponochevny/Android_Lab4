@@ -6,7 +6,8 @@ import com.example.android_lab4.data.model.Note
 
 @Database(
     entities = [Note::class],
-    version = 1
+    version = 1,
+    exportSchema = false
 )
 abstract class NoteDatabase() : RoomDatabase() {
     companion object {

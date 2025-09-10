@@ -2,8 +2,6 @@ package com.example.android_lab4
 
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -22,54 +20,39 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(
-) {
+class MainActivity : AppCompatActivity(), AddNoteDialog.NoticeDialogListener
+{
     private val viewModel: NoteViewModel by viewModels()
-    private lateinit var binding: NoteScreenBinding
+    private var _binding: NoteScreenBinding? = null
+    private val binding get() = _binding!!
     private val adapter = NoteAdapter (
         onDeleteClick = { note -> viewModel.onEvent(NoteEvent.DeleteNote(note))},
         onEditNote = {note -> viewModel.onEvent(NoteEvent.EditNote(note))}
     )
-    private var addNoteDialog: AddNoteDialog? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
-        binding = NoteScreenBinding.inflate(layoutInflater)
+        _binding = NoteScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         enableEdgeToEdge()
         setupSystemBarsPadding(binding)
         setRView()
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    adapter.submitList(state.notes) {
-                        binding.recyclerView.post { adapter.notifyDataSetChanged() }
-                    }
-
-                    if (state.isAddingNote) {
-                        val existingDialog = supportFragmentManager.findFragmentByTag("AddNoteDialog")
-                        if (existingDialog == null) {
-                            if (state.editingNoteId != null) {
-                                addNoteDialog = AddNoteDialog.newInstance(state.title, state.description)
-                            } else {
-                                addNoteDialog = AddNoteDialog.newInstance()
-                            }
-                            addNoteDialog?.show(supportFragmentManager, "AddNoteDialog")
-                        }
-                    } else {
-                        val existingDialog = supportFragmentManager.findFragmentByTag("AddNoteDialog") as? AddNoteDialog
-                        existingDialog?.dismiss()
-                        addNoteDialog = null
-                    }
-                }
-            }
-        }
+        pushAllNotesInAdapter()
+        noteDialog()
 
         binding.fab.setOnClickListener {
             viewModel.onEvent(NoteEvent.ShowDialog)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     private fun setupSystemBarsPadding(binding: NoteScreenBinding) {
@@ -84,5 +67,47 @@ class MainActivity : AppCompatActivity(
         binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
+    }
+
+    private fun pushAllNotesInAdapter() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.notes.collect { notes ->
+                    adapter.submitList(notes)
+                }
+            }
+        }
+    }
+
+    override fun onDialogPositiveClick(title: String, description: String) {
+        viewModel.onEvent(NoteEvent.SaveNote(title, description))
+        viewModel.onEvent(NoteEvent.HideDialog)
+    }
+
+    override fun onDialogNegativeClick() {
+        viewModel.onEvent(NoteEvent.HideDialog)
+    }
+
+    private fun noteDialog() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    val existingDialog = supportFragmentManager
+                        .findFragmentByTag("NoticeDialogFragment") as? AddNoteDialog
+
+                    if (state.isAddingNote) {
+                        if (existingDialog == null) {
+                            val dialog = AddNoteDialog.newInstance(
+                                state.title,
+                                state.description
+                            )
+                            dialog.show(supportFragmentManager, "NoticeDialogFragment")
+                        }
+                    } else {
+                        existingDialog?.dismiss()
+                    }
+                }
+            }
+        }
     }
 }

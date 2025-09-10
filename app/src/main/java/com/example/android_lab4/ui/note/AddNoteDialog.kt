@@ -2,6 +2,8 @@ package com.example.android_lab4.ui.note
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -11,13 +13,42 @@ import com.example.android_lab4.R
 import com.example.android_lab4.databinding.DialogAddNoteBinding
 import kotlin.getValue
 
-class AddNoteDialog(val title: String? = null, val description: String? = null) : DialogFragment() {
+class AddNoteDialog() : DialogFragment() {
+
+    var title: String? = null
+    var description: String? = null
 
     private var _binding: DialogAddNoteBinding? = null
     private val binding
         get() = _binding!!
 
-    private val viewModel: NoteViewModel by activityViewModels()
+    internal lateinit var listener: NoticeDialogListener
+
+    interface NoticeDialogListener {
+        fun onDialogPositiveClick(title: String, description: String)
+        fun onDialogNegativeClick()
+    }
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        // Verify that the host activity implements the callback interface.
+        try {
+            // Instantiate the NoticeDialogListener so you can send events to
+            // the host.
+            listener = context as NoticeDialogListener
+        } catch (e: ClassCastException) {
+            // The activity doesn't implement the interface. Throw exception.
+            throw ClassCastException((context.toString() +
+                    " must implement NoticeDialogListener"))
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            title = it.getString(ARG_TITLE)
+            description = it.getString(ARG_DESCRIPTION)
+        }
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogAddNoteBinding.inflate(layoutInflater)
@@ -25,20 +56,19 @@ class AddNoteDialog(val title: String? = null, val description: String? = null) 
         val dialog = AlertDialog.Builder(requireContext())
             .setTitle("New note")
             .setView(binding.root)
-            .setPositiveButton("Save") { _, _ ->
-                val title = binding.titleEditText.text.toString()
-                val description = binding.descriptionEditText.text.toString()
-                Log.d("data_from_dialog", title)
-
-                viewModel.onEvent(NoteEvent.SetTitle(title))
-                viewModel.onEvent(NoteEvent.SetDescription(description))
-                viewModel.onEvent(NoteEvent.SaveNote)
-
-            }
-            .setNegativeButton("Cancel") { _, _ ->
-                viewModel.onEvent(NoteEvent.HideDialog)
-            }
-            .setCancelable(true)
+            .setPositiveButton("Save",
+                DialogInterface.OnClickListener { dialog, id ->
+                    val title = binding.titleEditText.toString()
+                    val description = binding.descriptionEditText.toString()
+                    listener.onDialogPositiveClick(title, description)
+                })
+            .setNegativeButton("Cancel",
+                DialogInterface.OnClickListener { _, _ ->
+                    // Send the negative button event back to the
+                    // host activity.
+                    listener.onDialogNegativeClick()
+                })
+//            .setCancelable(true)
             .create()
 
 
@@ -71,7 +101,6 @@ class AddNoteDialog(val title: String? = null, val description: String? = null) 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        viewModel.onEvent(NoteEvent.HideDialog)
     }
 
     companion object {
