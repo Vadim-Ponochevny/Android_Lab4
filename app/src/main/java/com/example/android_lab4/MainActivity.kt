@@ -1,7 +1,7 @@
 package com.example.android_lab4
 
 import android.os.Bundle
-import android.util.Log
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +15,7 @@ import com.example.android_lab4.databinding.NoteScreenBinding
 import com.example.android_lab4.ui.note.AddNoteDialog
 import com.example.android_lab4.ui.note.NoteAdapter
 import com.example.android_lab4.ui.note.NoteEvent
+import com.example.android_lab4.ui.note.NoteState
 import com.example.android_lab4.ui.note.NoteViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -30,7 +31,6 @@ class MainActivity : AppCompatActivity(), AddNoteDialog.NoticeDialogListener
         onEditNote = {note -> viewModel.onEvent(NoteEvent.EditNote(note)); viewModel.onEvent(NoteEvent.ShowDialog)}
     )
 
-
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
@@ -43,11 +43,9 @@ class MainActivity : AppCompatActivity(), AddNoteDialog.NoticeDialogListener
         setRView()
 
         pushAllNotesInAdapter()
-        noteDialog()
+        observeDialogState()
 
-        binding.fab.setOnClickListener {
-            viewModel.onEvent(NoteEvent.ShowDialog)
-        }
+        setupFabClickListener()
     }
 
     override fun onDestroy() {
@@ -74,8 +72,22 @@ class MainActivity : AppCompatActivity(), AddNoteDialog.NoticeDialogListener
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.notes.collect { notes ->
                     adapter.submitList(notes)
+
+                    if (notes.isEmpty()) {
+                        binding.recyclerView.visibility = View.GONE
+                        binding.emptyTextView.visibility = View.VISIBLE
+                    } else {
+                        binding.recyclerView.visibility = View.VISIBLE
+                        binding.emptyTextView.visibility = View.GONE
+                    }
                 }
             }
+        }
+    }
+
+    private fun setupFabClickListener() {
+        binding.fab.setOnClickListener {
+            viewModel.onEvent(NoteEvent.ShowDialog)
         }
     }
 
@@ -88,25 +100,26 @@ class MainActivity : AppCompatActivity(), AddNoteDialog.NoticeDialogListener
         viewModel.onEvent(NoteEvent.HideDialog)
     }
 
-    private fun noteDialog() {
+    private fun observeDialogState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    val existingDialog = supportFragmentManager
-                        .findFragmentByTag("NoticeDialogFragment") as? AddNoteDialog
-
-                    if (state.dialogIsOpen) {
-                        if (existingDialog == null) {
-                            val dialog = AddNoteDialog.newInstance(
-                                state.title,
-                                state.description
-                            )
-                            dialog.show(supportFragmentManager, "NoticeDialogFragment")
-                        }
-                    } else {
-                        existingDialog?.dismiss()
-                    }
+                    showOrHideDialog(state)
                 }
+            }
+        }
+    }
+
+    private fun showOrHideDialog (state: NoteState) {
+        if (state.dialogIsOpen) {
+            val existingDialog = supportFragmentManager
+                .findFragmentByTag(AddNoteDialog.TAG) as? AddNoteDialog
+
+            if (existingDialog == null) {
+                AddNoteDialog.newInstance(
+                    state.title,
+                    state.description
+                ).show(supportFragmentManager, AddNoteDialog.TAG)
             }
         }
     }

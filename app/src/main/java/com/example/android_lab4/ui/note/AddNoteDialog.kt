@@ -5,13 +5,10 @@ import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.activityViewModels
 import com.example.android_lab4.R
 import com.example.android_lab4.databinding.DialogAddNoteBinding
-import kotlin.getValue
 
 class AddNoteDialog() : DialogFragment() {
 
@@ -28,15 +25,12 @@ class AddNoteDialog() : DialogFragment() {
         fun onDialogPositiveClick(title: String, description: String)
         fun onDialogNegativeClick()
     }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        // Verify that the host activity implements the callback interface.
         try {
-            // Instantiate the NoticeDialogListener so you can send events to
-            // the host.
             listener = context as NoticeDialogListener
         } catch (e: ClassCastException) {
-            // The activity doesn't implement the interface. Throw exception.
             throw ClassCastException((context.toString() +
                     " must implement NoticeDialogListener"))
         }
@@ -64,24 +58,21 @@ class AddNoteDialog() : DialogFragment() {
                 })
             .setNegativeButton("Cancel",
                 DialogInterface.OnClickListener { _, _ ->
-                    // Send the negative button event back to the
-                    // host activity.
                     listener.onDialogNegativeClick()
                 })
-//            .setCancelable(true)
             .create()
 
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.blue)
-            )
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.gray_gray)
-            )
+        dialog.apply {
+            this.setOnShowListener {
+                this.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.blue)
+                )
+                this.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.gray_gray)
+                )
+            }
+            this.window?.setBackgroundDrawableResource(R.drawable.shape)
         }
-
-        dialog.window?.setBackgroundDrawableResource(R.drawable.shape)
 
         val title = arguments?.getString(ARG_TITLE)
         val description = arguments?.getString(ARG_DESCRIPTION)
@@ -94,6 +85,7 @@ class AddNoteDialog() : DialogFragment() {
         if (!description.isNullOrEmpty()) {
             binding.descriptionEditText.setText(description)
         }
+
         return dialog
     }
 
@@ -103,7 +95,14 @@ class AddNoteDialog() : DialogFragment() {
         _binding = null
     }
 
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        listener.onDialogNegativeClick()
+    }
+
     companion object {
+        const val TAG = "AddNoteDialog"
+
         private const val ARG_TITLE = "arg_title"
         private const val ARG_DESCRIPTION = "arg_description"
 

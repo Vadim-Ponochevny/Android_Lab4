@@ -8,11 +8,7 @@ import com.example.android_lab4.domain.repository.NoteRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -48,73 +44,77 @@ class NoteViewModel @Inject constructor(
 
     fun onEvent(event: NoteEvent) {
         when(event) {
-            NoteEvent.ShowDialog -> {
-                _state.update { it.copy(
-                    dialogIsOpen = true
-                ) }
-            }
+            is NoteEvent.ShowDialog -> openDialog()
 
-            NoteEvent.HideDialog -> {
-                _state.update { it.copy(
-                    dialogIsOpen = false,
-                    editing = false,
-                    title = "",
-                    description = "",
-                    editingNoteId = null
-                ) }
-            }
+            is NoteEvent.HideDialog -> closeDialog()
 
-            is NoteEvent.DeleteNote -> {
-                viewModelScope.launch{
-                    repository.deleteNoteRepository(event.note)
-                }
-            }
+            is NoteEvent.DeleteNote -> deleteNote(event.note)
 
-            is NoteEvent.SaveNote -> {
-                val title = event.title
-                val description = event.description
-                val id = _state.value.editingNoteId
+            is NoteEvent.SaveNote -> saveNote(event.title, event.description)
 
-                if (title.isBlank() || description.isBlank()) {
-                    Log.d("SAVE_NOTE", "Title or description is blank")
-                    return
-                }
-
-                val note = if (id == null) {
-                    Note(
-                        title = title,
-                        description = description
-                    )
-                } else {
-                    Note(
-                        id = id,
-                        title = title,
-                        description = description
-                    )
-                }
-
-                viewModelScope.launch {
-                    repository.upsertNoteRepository(note)
-                    Log.d("SAVE_NOTE", "Note saved: $note")
-                }
-
-                _state.update { it.copy(
-                    dialogIsOpen = false,
-                    editing = false,
-                    title = "",
-                    description = "",
-                    editingNoteId = null
-                ) }
-
-            }
-            is NoteEvent.EditNote -> {
-                _state.update { it.copy(
-                    editing = true,
-                    title = event.note.title,
-                    description = event.note.description,
-                    editingNoteId = event.note.id
-                )}
-            }
+            is NoteEvent.EditNote -> editNote(event.note)
         }
+    }
+
+    private fun openDialog() {
+        _state.update { it.copy(
+            dialogIsOpen = true
+        ) }
+    }
+
+    private fun closeDialog() {
+        _state.update { it.copy(
+            dialogIsOpen = false,
+            editing = false,
+            title = "",
+            description = "",
+            editingNoteId = null
+        ) }
+    }
+
+    private fun deleteNote(note: Note) {
+        viewModelScope.launch{
+            repository.deleteNoteRepository(note)
+        }
+    }
+
+    private fun saveNote(title: String, description: String) {
+        // id при редактировании кладем и получаем из _state,
+        // чтобы не таскать его лишний раз из диалога,
+        // а внесенные пользователем title и description берем и event
+        val id = _state.value.editingNoteId
+
+        if (title.isBlank() || description.isBlank()) {
+            return
+        }
+
+        val note = if (id == null) {
+            Note(
+                title = title,
+                description = description
+            )
+        } else {
+            Note(
+                id = id,
+                title = title,
+                description = description
+            )
+        }
+
+        viewModelScope.launch {
+            repository.upsertNoteRepository(note)
+            Log.d("SAVE_NOTE", "Note saved: $note")
+        }
+
+        closeDialog()
+    }
+
+    private fun editNote(note: Note) {
+        _state.update { it.copy(
+            editing = true,
+            title = note.title,
+            description = note.description,
+            editingNoteId = note.id
+        )}
     }
 }
