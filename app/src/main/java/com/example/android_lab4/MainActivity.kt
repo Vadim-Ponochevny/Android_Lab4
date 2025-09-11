@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity(), AddNoteDialog.NoticeDialogListener
     private val binding get() = _binding!!
     private val adapter = NoteAdapter (
         onDeleteClick = { note -> viewModel.onEvent(NoteEvent.DeleteNote(note))},
-        onEditNote = {note -> viewModel.onEvent(NoteEvent.EditNote(note))}
+        onEditNote = {note -> viewModel.onEvent(NoteEvent.EditNote(note)); viewModel.onEvent(NoteEvent.ShowDialog)}
     )
 
 
@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity(), AddNoteDialog.NoticeDialogListener
                     val existingDialog = supportFragmentManager
                         .findFragmentByTag("NoticeDialogFragment") as? AddNoteDialog
 
-                    if (state.isAddingNote) {
+                    if (state.dialogIsOpen) {
                         if (existingDialog == null) {
                             val dialog = AddNoteDialog.newInstance(
                                 state.title,

@@ -58,8 +58,8 @@ class AddNoteDialog() : DialogFragment() {
             .setView(binding.root)
             .setPositiveButton("Save",
                 DialogInterface.OnClickListener { dialog, id ->
-                    val title = binding.titleEditText.toString()
-                    val description = binding.descriptionEditText.toString()
+                    val title = binding.titleEditText.text.toString()
+                    val description = binding.descriptionEditText.text.toString()
                     listener.onDialogPositiveClick(title, description)
                 })
             .setNegativeButton("Cancel",

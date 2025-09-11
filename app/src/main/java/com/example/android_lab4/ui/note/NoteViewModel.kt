@@ -46,21 +46,28 @@ class NoteViewModel @Inject constructor(
         }
     }
 
-
-
     fun onEvent(event: NoteEvent) {
         when(event) {
-            is NoteEvent.DeleteNote -> {
-                viewModelScope.launch{
-                    repository.deleteNoteRepository(event.note)
-                }
+            NoteEvent.ShowDialog -> {
+                _state.update { it.copy(
+                    dialogIsOpen = true
+                ) }
             }
 
             NoteEvent.HideDialog -> {
                 _state.update { it.copy(
                     dialogIsOpen = false,
                     editing = false,
+                    title = "",
+                    description = "",
+                    editingNoteId = null
                 ) }
+            }
+
+            is NoteEvent.DeleteNote -> {
+                viewModelScope.launch{
+                    repository.deleteNoteRepository(event.note)
+                }
             }
 
             is NoteEvent.SaveNote -> {
@@ -99,11 +106,6 @@ class NoteViewModel @Inject constructor(
                     editingNoteId = null
                 ) }
 
-            }
-            NoteEvent.ShowDialog -> {
-                _state.update { it.copy(
-                    dialogIsOpen = true
-                ) }
             }
             is NoteEvent.EditNote -> {
                 _state.update { it.copy(
