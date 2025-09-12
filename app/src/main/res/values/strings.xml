@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">Android_Lab4</string>
+    <string name="app_name">Notes</string>
+    <string name="titleForMainScreen">Notes</string>
+    <string name="contentDescriptionForFab">Add Note</string>
+    <string name="nameOfNote">Name of the note</string>
+    <string name="contentDescriptionOfDeleteButton">Delete a note</string>
+    <string name="whenNotesMissing">No notes yet</string>
 </resources>
